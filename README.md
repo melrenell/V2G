@@ -12,3 +12,8 @@ pip install .
 ```
 
 That's it, you are all set up.
+To use:
+Create a driving itinerary and load profile similar to the examples in V2G/templates
+Edit parameters in centralized_optimization.py
+Run
+A csv file will be generated with the outputs which create the plots
