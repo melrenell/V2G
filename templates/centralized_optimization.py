@@ -9,15 +9,15 @@ import pandas
 import numpy as np
 plt.rcParams.update({'font.size': 12})
 # ### Require gurobi or CPLEX #####
-
-#inputs to change
 opttype0="peak_shaving"
 opttype1="penalized_peak_shaving"
 opttype2="ramp_mitigation"
+
+#inputs to change
 opttype=opttype0
 nb_vehicles=14000
 nb_days=1 #be sure to also adjust the input load data
-timeinterval=10 #10 is default
+timeinterval=10 #10 minutes is default
 charger_power=60000 #charger power in Watts
 #itin='Schoolbus_25_summer_DCFC.xlsx'
 #itinname='Schoolbus_25_summer_DCFC'
@@ -27,6 +27,9 @@ itin='Schoolbus_25_winter_DCFC.xlsx'
 itinname='Schoolbus_25_winter_DCFC'
 loadname='Winter_avg' #for saved file
 loaddata='FERC_2018_Winter_Interpolate2.xlsx'
+itinnumber=25
+min_SOC=0.1
+max_SOC=0.95
 
 #V2G-Sim
 project = model.Project()
@@ -38,32 +41,17 @@ project = itinerary.copy_append(project, nb_of_days_to_add=nb_days+1)
 project.vehicles = itinerary.get_cycling_itineraries(project)
 
 # Reduce the number of vehicles
-project.vehicles = project.vehicles[0:25]
+project.vehicles = project.vehicles[0:itinnumber]
 
 # Create some new charging infrastructures, append those new
 # infrastructures to the project list of infrastructures
-"""
-charging_stations = []
-charging_stations.append(
-    model.ChargingStation(name='L2_V2G', maximum_power=charger_power, minimum_power=-charger_power, post_simulation=True))
-project.charging_stations.extend(charging_stations) 
-
-# Create a data frame with the new infrastructures mix and
-# apply this mix at all the locations
-df = pandas.DataFrame(index=['L2_V2G'],
-                      data={'charging_station': charging_stations,
-                            'probability': [1.0]}) #Hard-coded to assume only V2G
-for location in project.locations:
-    if location.category in ['Work']:
-        location.available_charging_station = df.copy() #Hard-coded to assume only V2G
-"""
 charging_stations = []
 charging_stations.append(
     model.ChargingStation(name='L2', maximum_power=7200, minimum_power=0))
 charging_stations.append(
     model.ChargingStation(name='L1_V1G', maximum_power=1400, minimum_power=0, post_simulation=True))
 charging_stations.append(
-    model.ChargingStation(name='L2_V2G', maximum_power=60000, minimum_power=-60000, post_simulation=True))
+    model.ChargingStation(name='L2_V2G', maximum_power=charger_power, minimum_power=-charger_power, post_simulation=True))
 project.charging_stations.extend(charging_stations)
 
 # Create a data frame with the new infrastructures mix and
@@ -94,7 +82,7 @@ total_power_demand = post_simulation.result.total_power_demand(project)
 myopti = post_simulation.netload_optimization.CentralOptimization(project, timeinterval,
                                                                          project.date + datetime.timedelta(days=1),
                                                                          project.date + datetime.timedelta(days=nb_days+1),
-                                                                         minimum_SOC=0.1, maximum_SOC=0.95)
+                                                                         minimum_SOC=min_SOC, maximum_SOC=max_SOC)
 # Load the net load data
 finalResult = pandas.DataFrame()
 net_load=pandas.read_excel(loaddata)
@@ -136,7 +124,6 @@ net_load_updated['netload'] =  temp_opt + temp_load #+ temp_unopt_dem - temp_uno
 unopt_dem_tosave = unoptimized_demand.copy()
 unopt_dem_tosave = unopt_dem_tosave * scale_factor
 unopt_dem_tosave.index = net_load.index
-#######################################unopt_dem_tosave.to_csv(results_path+"/unoptimized_demand.csv")
 
 netload = np.array(net_load['netload'])
 unopt_dem = np.array(unoptimized_charging.sum(axis=1)) * scale_factor
@@ -149,7 +136,6 @@ results = pandas.DataFrame.from_dict({"net_load": netload,
               'Net_load_optimized': netload + opt})
 results.index = net_load.index
 
-###########################
 results.to_csv(str(loadname)+str(opttype)+str(itinname)+str(nb_vehicles)+".csv")
 
 fig = plt.figure(figsize=(15,5))
@@ -160,4 +146,4 @@ plt.legend()
 plt.grid(b=None)
 plt.ylabel('Power [MW]')
 plt.xlabel('Time of Day')
-plt.title('Average Summer Day')
+plt.title('Daily Load Profile')
