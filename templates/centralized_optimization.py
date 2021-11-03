@@ -13,21 +13,34 @@ opttype0="peak_shaving"
 opttype1="penalized_peak_shaving"
 opttype2="ramp_mitigation"
 
-#inputs to change
-opttype=opttype0
-nb_vehicles=14000
-nb_days=1 #be sure to also adjust the input load data
-timeinterval=10 #10 minutes is default
+###To change power, 
+###also change line 11 in v2gsim.model
 charger_power=60000 #charger power in Watts
-#itin='Schoolbus_25_summer_DCFC.xlsx'
+
+###To change battery capacity,
+###also change line 12 in model
+capacity=200 #battery capacity in kWh
+
+###To change fleet size,
+###also change line 13 in model
+nb_vehicles=14000
+
+opttype0="peak_shaving"
+opttype1="penalized_peak_shaving"
+opttype2="ramp_mitigation"
+opttype=opttype0
+
+itin='Schoolbus_25_summer_DCFC.xlsx' #Use for summer and winter weekend
 #itinname='Schoolbus_25_summer_DCFC'
 #loadname='Summer_avg' #for saved file
 #loaddata='FERC_2018_Summer_Interpolate2.xlsx'
-itin='Schoolbus_25_winter_DCFC.xlsx'
+#itin='Schoolbus_25_winter_DCFC.xlsx'
 itinname='Schoolbus_25_winter_DCFC'
-loadname='Winter_avg' #for saved file
+loadname='Winterwkd_avg' #for saved file
 loaddata='FERC_2018_Winter_Interpolate2.xlsx'
 itinnumber=25
+nb_days=1 #number of days in the input load data
+timeinterval=10 #10 min is default
 min_SOC=0.1
 max_SOC=0.95
 
