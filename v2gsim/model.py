@@ -9,6 +9,10 @@ import copy
 import datetime
 
 
+chpower=60000 #watts
+batcap=200000 #Wh
+fleet=21000 #buses
+totpower=fleet*chpower/1000000
 class Project(object):
     """V2G-Sim project holder. It contains all the vehicles, locations,
     car models and charging stations used in the project. It also includes
@@ -97,11 +101,11 @@ class BasicCarModel(object):
 
     def __init__(self, name,
                  driving=driving.basic_powertrain.consumption,
-                 maker=None, year=None, UDDS=840.0, HWFET=840.0, US06=840.0,
-                 Delhi=840.0, maximum_SOC=0.95, decay=0.95,
-                 battery_capacity=126000, battery_efficiency_charging=1.0,
-                 battery_efficiency_discharging=1.0, maximum_power=60000,
-                 minimum_power=-60000):
+                 maker=None, year=None, UDDS=totpower, HWFET=totpower, US06=totpower,
+                 Delhi=totpower, maximum_SOC=0.95, decay=0.95,
+                 battery_capacity=batcap, battery_efficiency_charging=1.0,
+                 battery_efficiency_discharging=1.0, maximum_power=chpower,
+                 minimum_power=-chpower):
         self.name = name
         self.maker = maker
         self.year = year
@@ -305,7 +309,7 @@ class ChargingStation(object):
     """
 
     def __init__(self, charging=charging.uncontrolled.consumption,
-                 maximum_power=60000, minimum_power=-60000, post_simulation=False,
+                 maximum_power=chpower, minimum_power=-chpower, post_simulation=False,
                  name='charger'):
         self.name = name
         self.post_simulation = post_simulation
